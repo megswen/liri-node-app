@@ -1,9 +1,8 @@
 require("dotenv/config");
 var keys = require("./keys.js");
-//var spotifyKeys = new spotify(keys.spotify);
-//var spotify = require('node-spotify-api');
+var Spotify = require('node-spotify-api');
+var spotifyKeys = new Spotify(keys);
 var axios = require('axios');
-//var figlet = require('figlet');
 var moment = require('moment');
 moment().format();
 var fs = require('fs');
@@ -32,10 +31,10 @@ case "do-what-it-says":
 
 // Create a function that will pull info from the Bands in Town API and give the venue name, venue location, and date of event when a user searches for a band
     // "node liri.js concert-this <artist/band name>"
-function bandsInTown(parameter) {
+function bandsInTown() {
     var artist = "";
 	for (var i = 3; i < process.argv.length; i++){
-		artist += process.argv[i];
+        artist = process.argv.slice(3).join("+");
     }
     //console.log(artist);
 
@@ -43,7 +42,8 @@ function bandsInTown(parameter) {
 
     axios.get(queryURL)
     .then(function(response) {   
-        for (var i = 0; i < 5; i++) {
+        //console.log(response);
+        for (var i = 0; i < 3; i++) {
 
             var datetime = response.data[i].datetime;
 
@@ -55,48 +55,34 @@ function bandsInTown(parameter) {
             console.log(concertResults);
         }
     })
-    .catch(function (error) {
-        console.log(error);
+    .catch(function(error) {
+        console.log("--------------------------------------------------------------------" +
+            "\nSorry, that artist has no upcoming concerts.");
     });
 }
 
 // Create a function that will pull info from the Spotify API and give the artist name, song name, a preview link of the song in spotify, and the album the song is from when the user searches for a song
     // "node liri.js spotify-this-song <song name>"
-// function spotify(parameter){
-//     var songName = "";
-// 	for (var i = 3; i < process.argv.length; i++){
-// 		songName += process.argv[i];
-//     }
+function spotify(){
+    var songName = "";
+	for (var i = 3; i < process.argv.length; i++){
+		songName = process.argv.slice(3).join("+");
+    }
+    //console.log(songName);
 
-//     if(!songName){
-//         songName = "the sign";
-//     }
+    if(!songName){
+        songName = "the sign";
+    }
 
-//     spotifyKeys.search({type: 'track', query: songName})
-//     .then(function(response) {
-//         console.log(response);
-//         for (var i = 0; i < 5; i++) {
-//             var spotifyResults = 
-//                 "--------------------------------------------------------------------" +
-//                     "\nArtist(s): " + response.tracks.items[i].artists[0].name + 
-//                     "\nSong Name: " + response.tracks.items[i].name +
-//                     "\nAlbum Name: " + response.tracks.items[i].album.name +
-//                     "\nPreview Link: " + response.tracks.items[i].preview_url;
-                    
-//             //console.log(spotifyResults);
-//         }
-//     })
-//     .catch(function(err) {
-//         console.log(err);
-//     });
-// }
+    spotifyFunction(songName);
+}
 
 // Create a function that will pull info from the OMDB API and give info (see homework) when user types in movie name
     // "node liri.js movie-this <movie name>"
-function ombd(parameter) {
+function ombd() {
     var movieName = "";
 	for (var i = 3; i < process.argv.length; i++){
-		movieName += process.argv[i];
+		movieName = process.argv.slice(3).join("+");
     }
     //console.log(movieName);
 
@@ -129,12 +115,43 @@ function ombd(parameter) {
 // Create a function using the fs node package that will take the text inside of random.txt and use it to call one of liri's commands
     // It should run spotify-this-song for "I Want it That Way," as follows the text in random.txt
     // "node liri.js do-what-it-says"
-function random(parameter){
-    fs.readFile("random.txt", "utf8", function(error, data) {
-        if (error) {
+function random(){
+    fs.readFile('random.txt', "utf8", function(error, data){
+        //console.log(data);
+        if(error) {
             return console.log(error);
         }
-        var dataArr = data.split(',');
-        spotifySong(dataArr[0], dataArr[1]);
+    
+        var dataArr = data.split(" ");
+        
+        if(dataArr[0] === "spotify-this-song") {
+            command = dataArr[0];
+            //console.log(command);
+            var newSong = dataArr.slice(1).join(" ");
+            //console.log(newSong);
+            //spotify(newSong);
+            
+            spotifyFunction(newSong);
+        }
+    });
+}
+
+function spotifyFunction(newSong){
+    spotifyKeys.search({type: 'track', query: newSong})
+    .then(function(response) {
+        //console.log(response);
+        for (var i = 0; i < 1; i++) {
+            var spotifyResults = 
+                "--------------------------------------------------------------------" +
+                    "\nArtist(s): " + response.tracks.items[i].artists[0].name + 
+                    "\nSong Name: " + response.tracks.items[i].name +
+                    "\nAlbum Name: " + response.tracks.items[i].album.name +
+                    "\nPreview Link: " + response.tracks.items[i].preview_url;
+                    
+            console.log(spotifyResults);
+        }
     })
+    .catch(function(err) {
+        //console.log(err);
+    });
 }

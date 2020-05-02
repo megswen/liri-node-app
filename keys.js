@@ -5,6 +5,4 @@ var keys = {
   secret: process.env.SPOTIFY_SECRET
 };
 
-module.exports = {
-  spotifyKeys: keys
-}
+module.exports = keys;
